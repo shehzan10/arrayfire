@@ -114,6 +114,7 @@ namespace af
             template<typename T> T scalar() const;
             template<typename T> T* device() const;
             void unlock() const;
+            void lock() const;
 
                   array::array_proxy row(int index);
             const array::array_proxy row(int index) const;
@@ -676,9 +677,6 @@ namespace af
            @}
         */
 
-        void unlock() const;
-
-
         // INDEXING
         // Single arguments
 
@@ -917,6 +915,21 @@ namespace af
         ///
         /// For dense matrix, this is the same as count<int>(arr);
         int nonzeros() const;
+
+
+        ///
+        /// \brief Locks the device buffer in the memory manager.
+        ///
+        /// This method can be called to take control of the device pointer from the memory manager.
+        /// While a buffer is locked, the memory manager does not free the memory.
+        void lock() const;
+
+        ///
+        /// \brief Unlocks the device buffer in the memory manager.
+        ///
+        /// This method can be called after called after calling \ref array::lock()
+        /// Calling this method gives back the control of the device pointer to the memory manager.
+        void unlock() const;
     };
     // end of class array
 
@@ -1255,6 +1268,15 @@ extern "C" {
        Increments an \ref af_array reference count
     */
     AFAPI af_err af_retain_array(af_array *out, const af_array in);
+
+    /**
+       \ingroup method_mat
+       @{
+
+       Get the use count of `af_array`
+    */
+    AFAPI af_err af_get_data_ref_count(int *use_count, const af_array in);
+
 
     /**
        Evaluate any expressions in the Array

@@ -847,17 +847,17 @@ namespace af
     {                                                           \
         af_array out;                                           \
         af::dtype ty = plhs.type();                             \
-        af::dtype cty = plhs.isrealfloating() ? ty : dty;       \
+        af::dtype cty = plhs.isfloating() ? ty : dty;           \
         array cst = constant(value, plhs.dims(), cty);          \
         AF_THROW(func(&out, plhs.get(), cst.get(), gforGet())); \
         return array(out);                                      \
     }                                                           \
     array operator OP(const TY &value, const array &other)      \
     {                                                           \
-        const af_array rhs = other.get();                         \
+        const af_array rhs = other.get();                       \
         af_array out;                                           \
         af::dtype ty = other.type();                            \
-        af::dtype cty = other.isrealfloating() ? ty : dty;      \
+        af::dtype cty = other.isfloating() ? ty : dty;          \
         array cst = constant(value, other.dims(), cty);         \
         AF_THROW(func(&out, cst.get(), rhs, gforGet()));        \
         return array(out);                                      \
@@ -1013,9 +1013,17 @@ namespace af
 #undef TEMPLATE_MEM_FUNC
 
     //FIXME: This needs to be implemented at a later point
-    void array::unlock() const {}
     void array::array_proxy::unlock() const {}
 
     int array::nonzeros() const { return count<int>(*this); }
 
+    void array::lock() const
+    {
+        AF_THROW(af_lock_device_ptr(get()));
+    }
+
+    void array::unlock() const
+    {
+        AF_THROW(af_unlock_device_ptr(get()));
+    }
 }
