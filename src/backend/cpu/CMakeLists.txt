@@ -76,6 +76,9 @@ IF(NOT LAPACK_FOUND)
     MESSAGE(WARNING "LAPACK not found. Functionality will be disabled")
 ELSE(NOT LAPACK_FOUND)
     ADD_DEFINITIONS(-DWITH_CPU_LINEAR_ALGEBRA)
+    ADD_DEFINITIONS(-Dlapack_complex_float=std::complex<float>)
+    ADD_DEFINITIONS(-Dlapack_complex_double=std::complex<double>)
+    INCLUDE_DIRECTORIES(${LAPACK_INCLUDE_DIR})
 ENDIF()
 
 IF(NOT UNIX)
@@ -102,10 +105,6 @@ INCLUDE_DIRECTORIES(
     ${FFTW_INCLUDES}
     ${CBLAS_INCLUDE_DIR}
     )
-
-IF(LAPACK_FOUND)
-    INCLUDE_DIRECTORIES(${LAPACK_INCLUDE_DIR})
-ENDIF()
 
 FILE(GLOB cpu_headers
     "*.hpp"
@@ -160,6 +159,17 @@ source_group(api\\cpp\\Sources FILES ${cpp_sources})
 
 # OS Definitions
 IF(UNIX)
+    IF(CMAKE_COMPILER_IS_GNUCXX)
+        SET(ENABLE_CXX11 "-std=c++11")
+
+        EXECUTE_PROCESS(COMMAND "${CMAKE_CXX_COMPILER} -dumpversion"
+                        OUTPUT_VARIABLE GCC_VERSION)
+        IF(GCC_VERSION VERSION_LESS 4.7)
+            SET(ENABLE_CXX11 "-std=c++0x")
+        ENDIF()
+
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11}")
+    ENDIF()
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 ELSE(${UNIX}) #Windows
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -231,6 +241,8 @@ ENDIF()
 SET_TARGET_PROPERTIES(afcpu PROPERTIES
                       VERSION "${AF_VERSION}"
                       SOVERSION "${AF_VERSION_MAJOR}")
+
+cotire(afcpu)
 
 INSTALL(TARGETS afcpu EXPORT CPU DESTINATION "${AF_INSTALL_LIB_DIR}"
         COMPONENT libraries)
