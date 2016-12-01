@@ -50,6 +50,7 @@ namespace cusolver {
             : handle(0)
         {
             CUSOLVER_CHECK(cusolverDnCreate(&handle));
+            CUSOLVER_CHECK(cusolverDnSetStream(handle, cuda::getStream(cuda::getActiveDeviceId())));
         }
 
         ~cusolverDnHandle()
