@@ -513,12 +513,25 @@ void sparseArithTesterDiv(const int m, const int n, int factor, const double eps
     T *hRevO = revO.host<T>();
     T *hRevD = revD.host<T>();
 
+// This macro is used to check if either value is finite and then call assert
+// If neither value is finite, then they can be assumed to be equal to either inf or nan
+#define ASSERT_FINITE_EQ(V1, V2)                                                            \
+    if(std::isfinite(V1) || std::isfinite(V2)) ASSERT_NEAR(V1, V2, eps) << "at : " << i;    \
+
     for(int i = 0; i < B.elements(); i++) {
-        ASSERT_EQ(hResS[i], hResD[i]) << "at : " << i;
-        ASSERT_EQ(hResO[i], hResD[i]) << "at : " << i;
-        ASSERT_EQ(hRevS[i], hRevD[i]) << "at : " << i;
-        ASSERT_EQ(hRevO[i], hRevD[i]) << "at : " << i;
+        ASSERT_FINITE_EQ(real(hResS[i]), real(hResD[i]));
+        ASSERT_FINITE_EQ(real(hResO[i]), real(hResD[i]));
+        ASSERT_FINITE_EQ(real(hRevS[i]), real(hRevD[i]));
+        ASSERT_FINITE_EQ(real(hRevO[i]), real(hRevD[i]));
+
+        if(A.iscomplex()) {
+            ASSERT_FINITE_EQ(imag(hResS[i]), imag(hResD[i]));
+            ASSERT_FINITE_EQ(imag(hResO[i]), imag(hResD[i]));
+            ASSERT_FINITE_EQ(imag(hRevS[i]), imag(hRevD[i]));
+            ASSERT_FINITE_EQ(imag(hRevO[i]), imag(hRevD[i]));
+        }
     }
+#undef ASSERT_FINITE_EQ
 
     af::freeHost(hResS);
     af::freeHost(hResO);
@@ -546,14 +559,14 @@ void sparseArithTesterDiv(const int m, const int n, int factor, const double eps
         sparseArithTesterDiv<T>(M, N, F, EPS);                              \
     }                                                                       \
 
-#define ARITH_TESTS(T)                                                      \
-    ARITH_TESTS_OPS(T, 10  , 10  , 5, 1e-6)                                 \
-    ARITH_TESTS_OPS(T, 1024, 1024, 5, 1e-6)                                 \
-    ARITH_TESTS_OPS(T, 100 , 100 , 1, 1e-6)                                 \
-    ARITH_TESTS_OPS(T, 2048, 1000, 6, 1e-6)                                 \
-    ARITH_TESTS_OPS(T, 123 , 278 , 5, 1e-6)                                 \
+#define ARITH_TESTS(T, eps)                                                 \
+    ARITH_TESTS_OPS(T, 10  , 10  , 5, eps)                                  \
+    ARITH_TESTS_OPS(T, 1024, 1024, 5, eps)                                  \
+    ARITH_TESTS_OPS(T, 100 , 100 , 1, eps)                                  \
+    ARITH_TESTS_OPS(T, 2048, 1000, 6, eps)                                  \
+    ARITH_TESTS_OPS(T, 123 , 278 , 5, eps)                                  \
 
-ARITH_TESTS(float  )
-ARITH_TESTS(double )
-ARITH_TESTS(cfloat )
-ARITH_TESTS(cdouble)
+ARITH_TESTS(float  , 1e-6)
+ARITH_TESTS(double , 1e-6)
+ARITH_TESTS(cfloat , 1e-4) // This is mostly for complex division in OpenCL
+ARITH_TESTS(cdouble, 1e-6)
