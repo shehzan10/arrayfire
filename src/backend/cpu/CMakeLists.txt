@@ -168,14 +168,14 @@ ENDIF()
 INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/kernel/sort_by_key/CMakeLists.txt")
 
 IF(DEFINED BLAS_SYM_FILE)
-  ADD_LIBRARY(afcpu_static STATIC
+  ADD_LIBRARY(afcpu_static
               ${cpu_headers}
               ${cpu_sources}
               ${backend_headers}
               ${backend_sources}
               ${SORT_BY_KEY_OBJECTS})
 
-  ADD_LIBRARY(afcpu SHARED
+            ADD_LIBRARY(afcpu
               ${c_headers}
               ${c_sources}
               ${cpp_sources})
@@ -197,7 +197,7 @@ IF(DEFINED BLAS_SYM_FILE)
 
 ELSE(DEFINED BLAS_SYM_FILE)
 
-ADD_LIBRARY(afcpu SHARED
+ADD_LIBRARY(afcpu
             ${cpu_headers}
             ${cpu_sources}
             ${backend_headers}

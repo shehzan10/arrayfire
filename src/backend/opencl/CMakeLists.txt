@@ -246,7 +246,7 @@ INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/kernel/sort_by_key/CMakeLists.txt")
 INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/kernel/scan_by_key/CMakeLists.txt")
 IF(DEFINED BLAS_SYM_FILE)
 
-    ADD_LIBRARY(afopencl_static STATIC
+    ADD_LIBRARY(afopencl_static
                 ${opencl_headers}
                 ${opencl_sources}
                 ${jit_sources}
@@ -264,7 +264,7 @@ IF(DEFINED BLAS_SYM_FILE)
                 ${SORT_BY_KEY_OBJECTS}
                 ${SCAN_BY_KEY_OBJECTS})
 
-    ADD_LIBRARY(afopencl SHARED
+              ADD_LIBRARY(afopencl
                ${c_headers}
                ${c_sources}
                ${cpp_sources})
@@ -288,7 +288,7 @@ IF(DEFINED BLAS_SYM_FILE)
 
 ELSE(DEFINED BLAS_SYM_FILE)
 
-    ADD_LIBRARY(afopencl SHARED
+  ADD_LIBRARY(afopencl
                 ${opencl_headers}
                 ${opencl_sources}
                 ${jit_sources}

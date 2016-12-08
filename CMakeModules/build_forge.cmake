@@ -32,7 +32,12 @@ ELSE(WIN32)
     SET(forge_lib_prefix "${prefix}/src/forge-ext-build/src/backend/opengl")
 ENDIF(WIN32)
 
-SET(forge_location "${forge_lib_prefix}/${forge_lib_infix}${CMAKE_SHARED_LIBRARY_PREFIX}forge${CMAKE_SHARED_LIBRARY_SUFFIX}")
+IF(BUILD_SHARED_LIBS)
+    SET(forge_location "${forge_lib_prefix}/${forge_lib_infix}${CMAKE_SHARED_LIBRARY_PREFIX}forge${CMAKE_SHARED_LIBRARY_SUFFIX}")
+ELSE(BUILD_SHARED_LIBS)
+  SET(forge_location "${forge_lib_prefix}/${forge_lib_infix}${CMAKE_STATIC_LIBRARY_PREFIX}forge${CMAKE_STATIC_LIBRARY_SUFFIX}")
+ENDIF(BUILD_SHARED_LIBS)
+
 IF(CMAKE_VERSION VERSION_LESS 3.2)
     IF(CMAKE_GENERATOR MATCHES "Ninja")
         MESSAGE(WARNING "Building forge with Ninja has known issues with CMake older than 3.2")
@@ -47,8 +52,8 @@ SET(FORGE_VERSION 0.9.1)
 # FIXME Tag forge correctly during release
 ExternalProject_Add(
     forge-ext
-    GIT_REPOSITORY https://github.com/arrayfire/forge.git
-    GIT_TAG devel
+    GIT_REPOSITORY https://github.com/shehzan10/forge.git
+    GIT_TAG static
     PREFIX "${prefix}"
     INSTALL_DIR "${prefix}"
     UPDATE_COMMAND ""
@@ -59,6 +64,7 @@ ExternalProject_Add(
     -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
     -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+    -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
     -DBUILD_EXAMPLES:BOOL=OFF
     -DBUILD_DOCUMENTATION:BOOL=${BUILD_DOCS}
     -DUSE_SYSTEM_GLBINDING:BOOL=TRUE
@@ -75,17 +81,23 @@ ExternalProject_Add(
 ExternalProject_Get_Property(forge-ext binary_dir)
 ExternalProject_Get_Property(forge-ext install_dir)
 
-ADD_LIBRARY(forge SHARED IMPORTED)
-SET_TARGET_PROPERTIES(forge PROPERTIES IMPORTED_LOCATION ${forge_location})
+IF(BUILD_SHARED_LIBS)
+    ADD_LIBRARY(forge SHARED IMPORTED)
+    SET_TARGET_PROPERTIES(forge PROPERTIES IMPORTED_LOCATION ${forge_location})
 
-IF(WIN32)
+    IF(WIN32)
+        SET_TARGET_PROPERTIES(forge PROPERTIES IMPORTED_IMPLIB ${forge_lib_prefix}/forge.lib)
+    ELSE(WIN32)
+        SET(forge_bindir_location ${binary_dir}/src/backend/opengl/${forge_lib_infix}${CMAKE_SHARED_LIBRARY_PREFIX}forge${CMAKE_SHARED_LIBRARY_SUFFIX})
+        IF(NOT (${forge_bindir_location} STREQUAL ${forge_location}))
+            MESSAGE(WARNING "Did the forge binary location move? (Have ${forge_bindir_location} vs ${forge_location})")
+        ENDIF()
+    ENDIF(WIN32)
+ELSE(BUILD_SHARED_LIBS)
+    ADD_LIBRARY(forge STATIC IMPORTED)
+    SET_TARGET_PROPERTIES(forge PROPERTIES IMPORTED_LOCATION ${forge_location})
     SET_TARGET_PROPERTIES(forge PROPERTIES IMPORTED_IMPLIB ${forge_lib_prefix}/forge.lib)
-ELSE(WIN32)
-    SET(forge_bindir_location ${binary_dir}/src/backend/opengl/${forge_lib_infix}${CMAKE_SHARED_LIBRARY_PREFIX}forge${CMAKE_SHARED_LIBRARY_SUFFIX})
-    IF(NOT (${forge_bindir_location} STREQUAL ${forge_location}))
-        MESSAGE(WARNING "Did the forge binary location move? (Have ${forge_bindir_location} vs ${forge_location})")
-    ENDIF()
-ENDIF(WIN32)
+ENDIF(BUILD_SHARED_LIBS)
 
 ADD_DEPENDENCIES(forge forge-ext ${GLBINDING_TARGET})
 

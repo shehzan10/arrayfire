@@ -33,6 +33,8 @@ OPTION(BUILD_NONFREE "Build ArrayFire nonfree algorithms" OFF)
 
 OPTION(BUILD_UNIFIED "Build Backend-Independent ArrayFire API" ON)
 
+OPTION(BUILD_SHARED_LIBS "Build Shared (ON) or Static (OFF) ArrayFire Libraries" ON)
+
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
@@ -90,6 +92,8 @@ IF(BUILD_GRAPHICS)
         SET(GRAPHICS_LIBRARIES  ${FORGE_LIBRARIES}
                                 ${GLBINDING_LIBRARIES}
                                 ${OPENGL_gl_LIBRARY})
+
+        MESSAGE(STATUS "************************ ${GRAPHICS_LIBRARIES}")
 
         IF(APPLE)
             FIND_PACKAGE(X11 REQUIRED)
@@ -187,10 +191,15 @@ IF(${BUILD_OPENCL})
     ADD_SUBDIRECTORY(src/backend/opencl)
 ENDIF()
 
-IF(${BUILD_UNIFIED})
-    ADD_DEFINITIONS(-DAF_UNIFIED)
-    ADD_SUBDIRECTORY(src/api/unified)
-ENDIF()
+IF(BUILD_SHARED_LIBS)
+    IF(${BUILD_UNIFIED})
+        ADD_DEFINITIONS(-DAF_UNIFIED)
+        ADD_SUBDIRECTORY(src/api/unified)
+    ENDIF()
+ELSE(BUILD_SHARED_LIBS)
+    MESSAGE(WARNING "Unified backend requires shared libraries to load at runtime.\n"
+                    "Unified backend will be ignored.")
+ENDIF(BUILD_SHARED_LIBS)
 
 IF(${BUILD_DOCS})
     ADD_SUBDIRECTORY(docs)

@@ -470,21 +470,21 @@ IF(NOT CUDA_CUDA_LIBRARY)
     MESSAGE(FATAL_ERROR "Ending CMake configuration because of missing CUDA_CUDA_LIBRARY")
 ENDIF(NOT CUDA_CUDA_LIBRARY)
 
-MY_CUDA_ADD_LIBRARY(afcuda SHARED
-                ${cuda_headers}
-                ${cuda_sources}
-                ${jit_sources}
-                ${kernel_headers}
-                ${cpu_lapack_headers}
-                ${cpu_lapack_sources}
-                ${backend_headers}
-                ${backend_sources}
-                ${c_headers}
-                ${c_sources}
-                ${cpp_sources}
-                ${thrust_sort_by_key_sources}
-                ${scan_by_key_sources}
-                OPTIONS ${CUDA_GENERATE_CODE})
+MY_CUDA_ADD_LIBRARY(afcuda
+                    ${cuda_headers}
+                    ${cuda_sources}
+                    ${jit_sources}
+                    ${kernel_headers}
+                    ${cpu_lapack_headers}
+                    ${cpu_lapack_sources}
+                    ${backend_headers}
+                    ${backend_sources}
+                    ${c_headers}
+                    ${c_sources}
+                    ${cpp_sources}
+                    ${thrust_sort_by_key_sources}
+                    ${scan_by_key_sources}
+                    OPTIONS ${CUDA_GENERATE_CODE})
 
 ADD_DEPENDENCIES(afcuda ${ptx_targets})
 
